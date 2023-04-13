@@ -1,10 +1,15 @@
 import json
+import yaml
 
 import requests
 import time
 
-IP = "192.168.119.161"
-PORT = "9091"
+# 从secrets.yml文件中读取IP和PORT
+with open('secrets.yml', 'r', encoding='utf-8') as f:
+    file_content = f.read()
+    content = yaml.load(file_content, yaml.FullLoader)
+    IP = content["IP"]
+    PORT = content["PORT"]
 
 
 def get_nodeId():
