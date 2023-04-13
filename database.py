@@ -94,9 +94,9 @@ def delete_data():
 
 def select_data(num):  # 返回从数据库中读取到num条数据，导入到文件中，并记录读取到的数据所用的时间
     conn = connect_database()
-    time1 = datetime.datetime.now()
     # 2.创建Statement对象
     stmt = conn.createStatement()
+    time1 = datetime.datetime.now()
     # 3.执行SQL语句
     sql = "select * from current_info where id <= " + str(num)
     rs = stmt.executeQuery(sql)
