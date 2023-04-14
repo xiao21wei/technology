@@ -144,7 +144,7 @@ def select_data_pro(num, length):
     stmt = conn.createStatement()
     time1 = datetime.datetime.now()
     # 3.执行SQL语句
-    sql = "select * from current_info where id <= " + str(num) + "and id / " + str(length) + " = 0"
+    sql = "select * from current_info where id <= " + str(num) + "and MOD(id, " + str(length) + ") = 0"
     rs = stmt.executeQuery(sql)
     time2 = datetime.datetime.now()
     # 4.处理结果集，将结果导入到txt文件中
