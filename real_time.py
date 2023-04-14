@@ -1,10 +1,15 @@
 import json
 import time
+import yaml
 
 from send_request import get_nodeId, get_equipment, get_point, get_data, get_history
 
-IP = "192.168.119.161"
-PORT = "9091"
+# 从secrets.yml文件中读取IP和PORT
+with open('secrets.yml', 'r', encoding='utf-8') as f:
+    file_content = f.read()
+    content = yaml.load(file_content, yaml.FullLoader)
+    IP = content["IP"]
+    PORT = content["PORT"]
 
 
 def real_time(pointUuid):

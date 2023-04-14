@@ -100,6 +100,7 @@ def select_data(num):  # 返回从数据库中读取到num条数据，导入到�
     # 3.执行SQL语句
     sql = "select * from current_info where id <= " + str(num)
     rs = stmt.executeQuery(sql)
+    time2 = datetime.datetime.now()
     # 4.处理结果集，将结果导入到txt文件中
     file_name = str(num) + "_" + str(time1.strftime("%Y-%m-%d_%H_%M_%S")) + ".txt"
     with open(file_name, "w") as f:
@@ -108,14 +109,14 @@ def select_data(num):  # 返回从数据库中读取到num条数据，导入到�
             equipmentname = str(rs.getString(2))
             pointid = str(rs.getString(3))
             trendtime = str(rs.getString(4))
-            f.write(id + "," + equipmentname + "," + pointid + "," + trendtime  + "\n")
-    time2 = datetime.datetime.now()
+            f.write(id + "," + equipmentname + "," + pointid + "," + trendtime + "\n")
+    time3 = datetime.datetime.now()
     # 5.关闭结果集
     rs.close()
     # 6.关闭连接
     stmt.close()
     conn.close()
-    return time2 - time1
+    return time2 - time1, time3 - time1
 
 
 def count_data():
@@ -135,3 +136,30 @@ def count_data():
     stmt.close()
     conn.close()
     return ans
+
+
+def select_data_pro(num, length):
+    conn = connect_database()
+    # 2.创建Statement对象
+    stmt = conn.createStatement()
+    time1 = datetime.datetime.now()
+    # 3.执行SQL语句
+    sql = "select * from current_info where id <= " + str(num) + "and id / " + str(length) + " = 0"
+    rs = stmt.executeQuery(sql)
+    time2 = datetime.datetime.now()
+    # 4.处理结果集，将结果导入到txt文件中
+    file_name = str(num) + "_" + str(length) + "_" + str(time1.strftime("%Y-%m-%d_%H_%M_%S")) + ".txt"
+    with open(file_name, "w") as f:
+        while rs.next():
+            id = str(rs.getString(1))
+            equipmentname = str(rs.getString(2))
+            pointid = str(rs.getString(3))
+            trendtime = str(rs.getString(4))
+            f.write(id + "," + equipmentname + "," + pointid + "," + trendtime + "\n")
+    time3 = datetime.datetime.now()
+    # 5.关闭结果集
+    rs.close()
+    # 6.关闭连接
+    stmt.close()
+    conn.close()
+    return time2 - time1, time3 - time1
