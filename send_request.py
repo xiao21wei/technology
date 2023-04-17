@@ -43,16 +43,6 @@ def get_data(equipmentUuid, pointId):
         return None
 
 
-def get_history(equipmentUuid, pointId, startTime, endTime):
-    url = "http://" + IP + ":" + PORT + "/trend/" + equipmentUuid + "/" + pointId + "/" + str(startTime) + "/" + str(endTime) + "/info"
-    response = requests.get(url)
-    if 'data' in response.json():
-        data_data = response.json()["data"]
-        return data_data
-    else:
-        return None
-
-
 def get_real_time():
     nodeId_data = get_nodeId()
     for (i, nodeId) in enumerate(nodeId_data):
@@ -74,5 +64,30 @@ def get_real_time():
                     f.close()
 
 
+def get_history(equipmentUuid, pointId, startTime, endTime):
+    url = "http://" + IP + ":" + PORT + "/trend/" + equipmentUuid + "/" + pointId + "/" + startTime + "/" + endTime + "/info"
+    response = requests.get(url)
+    print(response.json())
+    if 'data' in response.json():
+        data_data = response.json()["data"]
+        return data_data
+    else:
+        return None
+
+
 if __name__ == '__main__':
-    get_real_time()
+    # 获取当前时间的UNIX毫秒时间戳和一周前的UNIX毫秒时间戳
+    now = int(time.time() * 1000)
+    week_ago = now - 7 * 24 * 60 * 60 * 1000
+    # 将UNIX毫秒时间戳转换为字符串
+    now = str(now)
+    week_ago = str(week_ago)
+    print(week_ago)
+    print(now)
+
+    points = get_point("b1161555a5cf4cb0f060a7442127b7b6")
+    for point in points:
+        data = get_history("b1161555a5cf4cb0f060a7442127b7b6", point["pointId"], week_ago, now)
+        if data is not None and len(data["trendInfo"]) != 0:
+            print(data)
+

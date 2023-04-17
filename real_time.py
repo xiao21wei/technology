@@ -2,7 +2,7 @@ import json
 import time
 import yaml
 
-from send_request import get_nodeId, get_equipment, get_point, get_data, get_history
+from send_request import get_nodeId, get_equipment, get_point, get_data
 
 # 从secrets.yml文件中读取IP和PORT
 with open('secrets.yml', 'r', encoding='utf-8') as f:
@@ -31,22 +31,6 @@ def real_time(pointUuid):
                         f.write(trendValue)
                         waveValue = json.dumps(data["waveValue"], ensure_ascii=False)
                         f.write(waveValue)
-                        f.close()
-
-
-def info(pointUuid, startTime, endTime):
-    nodeId_data = get_nodeId()
-    for (i, nodeId) in enumerate(nodeId_data):
-        equipmentUuid_data = get_equipment(nodeId["nodeId"])
-        for (j, equipmentUuid) in enumerate(equipmentUuid_data):
-            point_data = get_point(equipmentUuid["equipmentUuid"])
-            for (k, point) in enumerate(point_data):
-                if point["pointUuid"] == pointUuid:
-                    data = get_history(equipmentUuid["equipmentUuid"], point["pointId"], startTime, endTime)
-                    if data is not None:
-                        name = data["equipmentName"] + "%%" + point["pointId"]
-                        f = open(name + ".txt", "w")
-                        f.write(str(data["trendInfo"]))
                         f.close()
 
 
