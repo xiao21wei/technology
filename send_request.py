@@ -1,3 +1,4 @@
+import csv
 import json
 import yaml
 
@@ -67,7 +68,6 @@ def get_real_time():
 def get_history(equipmentUuid, pointId, startTime, endTime):
     url = "http://" + IP + ":" + PORT + "/trend/" + equipmentUuid + "/" + pointId + "/" + startTime + "/" + endTime + "/info"
     response = requests.get(url)
-    print(response.json())
     if 'data' in response.json():
         data_data = response.json()["data"]
         return data_data
@@ -75,19 +75,36 @@ def get_history(equipmentUuid, pointId, startTime, endTime):
         return None
 
 
+def load_data(start, end):
+    points = get_point("b1161555a5cf4cb0f060a7442127b7b6")
+    for point in points:
+        data = get_history("b1161555a5cf4cb0f060a7442127b7b6", point["pointId"], start, end)
+        if data is not None and len(data["trendInfo"]) != 0:
+            trendInfo = data["trendInfo"]
+            f = open(point["pointId"] + ".csv", "w", encoding="utf-8", newline="")
+            csv_writer = csv.writer(f)
+            csv_writer.writerow(["trendTime", "all", "one", "two", "three", "half", "res"])
+            for trend in trendInfo:
+                trendTime = trend["trendTime"]
+                t = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(trendTime / 1000))
+                all = trend["trendValue"][0]["all"]
+                one = trend["trendValue"][0]["one"]
+                two = trend["trendValue"][0]["two"]
+                three = trend["trendValue"][0]["three"]
+                half = trend["trendValue"][0]["half"]
+                res = trend["trendValue"][0]["res"]
+                csv_writer.writerow([t, all, one, two, three, half, res])
+            f.close()
+
+
 if __name__ == '__main__':
     # 获取当前时间的UNIX毫秒时间戳和一周前的UNIX毫秒时间戳
     now = int(time.time() * 1000)
-    week_ago = now - 7 * 24 * 60 * 60 * 1000
+    end = now
+    start = end - 8 * 24 * 60 * 60 * 1000
     # 将UNIX毫秒时间戳转换为字符串
-    now = str(now)
-    week_ago = str(week_ago)
-    print(week_ago)
-    print(now)
-
-    points = get_point("b1161555a5cf4cb0f060a7442127b7b6")
-    for point in points:
-        data = get_history("b1161555a5cf4cb0f060a7442127b7b6", point["pointId"], week_ago, now)
-        if data is not None and len(data["trendInfo"]) != 0:
-            print(data)
-
+    end = str(end)
+    start = str(start)
+    print(start)
+    print(end)
+    load_data(start, end)
