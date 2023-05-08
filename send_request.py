@@ -68,6 +68,7 @@ def get_real_time():
 def get_history(equipmentUuid, pointId, startTime, endTime):
     url = "http://" + IP + ":" + PORT + "/trend/" + equipmentUuid + "/" + pointId + "/" + startTime + "/" + endTime + "/info"
     response = requests.get(url)
+    print(response.json())
     if 'data' in response.json():
         data_data = response.json()["data"]
         return data_data
@@ -97,6 +98,21 @@ def load_data(start, end):
             f.close()
 
 
+def load_three_data(start, end):
+    data = get_history("b1161555a5cf4cb0f060a7442127b7b6", "cs4", start, end)
+    if data is not None and len(data["trendInfo"]) != 0:
+        trendInfo = data["trendInfo"]
+        f = open("1Aa.csv", "w", encoding="utf-8", newline="")
+        csv_writer = csv.writer(f)
+        csv_writer.writerow(["trendTime", "three"])
+        for trend in trendInfo:
+            trendTime = trend["trendTime"]
+            t = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(trendTime / 1000))
+            three = trend["trendValue"][0]["three"]
+            csv_writer.writerow([t, three])
+        f.close()
+
+
 if __name__ == '__main__':
     # 获取当前时间的UNIX毫秒时间戳和一周前的UNIX毫秒时间戳
     now = int(time.time() * 1000)
@@ -107,4 +123,4 @@ if __name__ == '__main__':
     start = str(start)
     print(start)
     print(end)
-    load_data(start, end)
+    load_three_data(start, end)

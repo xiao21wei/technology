@@ -9,7 +9,7 @@ def delete():
     path = os.getcwd()
     for root, dirs, files in os.walk(path):
         for file in files:
-            if os.path.splitext(file)[1] == '.csv':
+            if os.path.splitext(file)[1] == '.csv' or os.path.splitext(file)[1] == '.txt':
                 # 如果文件为只读属性，则去除文件的只读属性
                 if os.access(os.path.join(root, file), os.F_OK):
                     os.chmod(os.path.join(root, file), stat.S_IWRITE)
