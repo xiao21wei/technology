@@ -1,8 +1,6 @@
 import os
 import stat
 
-import jpype
-
 
 def delete():
     # 删除该目录下所有的txt文件
