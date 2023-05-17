@@ -23,11 +23,20 @@ def randomForest_model_test(csv_file, value, n):
     # Rename the columns
     df = df.rename(columns={'trendTime': 'ds', value: 'y'})
     last_data_time = df['ds'].iloc[-1]
-    print(last_data_time)
-    # last_data_time为%Y-%m-%d %H:%M:%S格式,计算半天前的时间
-    last_data_time = pd.to_datetime(last_data_time) - pd.Timedelta(hours=12)
-    last_data_time = last_data_time.strftime('%Y-%m-%d %H:%M:%S')
-    print(last_data_time)
+
+    start_time = pd.to_datetime(last_data_time) - pd.Timedelta(days=8)
+    start_time = start_time.strftime('%Y-%m-%d %H:%M:%S')
+    print(start_time)
+
+    # last_data_time为%Y-%m-%d %H:%M:%S格式
+    mid_time = pd.to_datetime(last_data_time) - pd.Timedelta(days=1)
+    mid_time = mid_time.strftime('%Y-%m-%d %H:%M:%S')
+    print(mid_time)
+
+    end_time = pd.to_datetime(mid_time) + pd.Timedelta(minutes=5)
+    end_time = end_time.strftime('%Y-%m-%d %H:%M:%S')
+    print(end_time)
+
     # 划分训练集和测试集
     data = df.copy()
 
@@ -35,10 +44,10 @@ def randomForest_model_test(csv_file, value, n):
         data['ypre_' + str(i)] = data['y'].shift(i)
     data = data[['ds'] + ['ypre_' + str(i) for i in range(n, 0, -1)] + ['y']]  # 选择特征
 
-    x_train = data[data['ds'] < last_data_time].dropna()[['ypre_' + str(i) for i in range(n, 0, -1)]]
-    y_train = data[data['ds'] < last_data_time].dropna()['y']
-    x_test = data[data['ds'] >= last_data_time].dropna()[['ypre_' + str(i) for i in range(n, 0, -1)]]
-    y_test = data[data['ds'] >= last_data_time].dropna()['y']
+    x_train = data[(data['ds'] < mid_time) & (data['ds'] > start_time)].dropna()[['ypre_' + str(i) for i in range(n, 0, -1)]]
+    y_train = data[(data['ds'] < mid_time) & (data['ds'] > start_time)].dropna()['y']
+    x_test = data[(data['ds'] >= mid_time) & (data['ds'] < end_time)].dropna()[['ypre_' + str(i) for i in range(n, 0, -1)]]
+    y_test = data[(data['ds'] >= mid_time) & (data['ds'] < end_time)].dropna()['y']
 
     # Create the random forest model
     model = randomForest_model_train(x_train, y_train)
@@ -57,9 +66,8 @@ def randomForest_model_test(csv_file, value, n):
     plt.legend()
     plt.show()
 
-    plt.savefig("randomForest_"+str(n)+".png")
-
 
 if __name__ == '__main__':
-    for i in range(3, 30):
-        randomForest_model_test('1Aa.csv', 'three', i)
+    # for i in range(5, 31):
+    #     randomForest_model_test('cs4.csv', 'three', i)
+    randomForest_model_test('cs4.csv', 'three', 10)
