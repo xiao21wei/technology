@@ -1,3 +1,5 @@
+import itertools
+
 import pandas as pd
 from matplotlib import pyplot as plt
 from prophet import Prophet
@@ -25,15 +27,56 @@ def prophet_model_test(csv_file, value):
 
     # 划分训练集和测试集
     df_train = df[(df['ds'] < mid_time) & (df['ds'] > start_time)]
+    df_train = df_train.iloc[::1000, :]
     df_test = df[(df['ds'] >= mid_time) & (df['ds'] < end_time)]
+    df_test = df_test.iloc[::1000, :]
 
-    # 创建模型，并实现自动调参
-    model = Prophet(changepoint_prior_scale=0.01, changepoint_range=0.9, n_changepoints=25, seasonality_mode='multiplicative')
-    model.fit(df_train)
+    print(df_train.shape)
+    print(df_test.shape)
 
-    forecast = model.predict(df_test)
+    # param_grid = {
+    #     'n_changepoints': [30],
+    #     'changepoint_range': [0.6],
+    #     'changepoint_prior_scale': [0.5],
+    #     'daily_seasonality': [True],
+    #     'seasonality_mode': ['additive'],
+    #     'seasonality_prior_scale': [1],
+    #     'interval_width': [0.1],
+    #     'uncertainty_samples': [500],
+    # }
 
-    model.plot(forecast)
+    # all_params = [dict(zip(param_grid.keys(), v)) for v in itertools.product(*param_grid.values())]
+    # rmses = []  # 用于存储各个参数集对应的RMSE误差
+    #
+    # # Use cross validation to evaluate all parameters
+    # for params in all_params:
+    #     m = Prophet(**params).fit(df_train)  # Fit model with given params
+    #     df_cv = m.predict(df_test)  # Make predictions
+    #     df_p = df_cv[['ds', 'yhat']].join(df_test[['ds', 'y']].set_index('ds'), on='ds')  # Predictions and test data
+    #     df_p.dropna(inplace=True)
+    #     rmses.append((params, (df_p['y'] - df_p['yhat']).apply(lambda x: x ** 2).mean() ** 0.5))
+    #
+    # # Find the best parameters
+    # best_params = all_params[rmses.index(min(rmses, key=lambda x: x[1]))]
+    # print(best_params)
+
+    best_params = {
+        'n_changepoints': 30,
+        'changepoint_range': 0.6,
+        'changepoint_prior_scale': 0.5,
+        'daily_seasonality': True,
+        'seasonality_mode': 'additive',
+        'seasonality_prior_scale': 1,
+        'interval_width': 0.1,
+        'uncertainty_samples': 500,
+    }
+
+    # Use the best params to fit the model
+    # m = Prophet(**best_params).fit(df_train)
+    m = Prophet().fit(df_train)
+    forecast = m.predict(df_test)
+
+    m.plot(forecast)
     plt.show()
 
     # 将测试数据和预测数据呈现在一张图上
