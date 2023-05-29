@@ -27,24 +27,19 @@ def prophet_model_test(csv_file, value):
 
     # 划分训练集和测试集
     df_train = df[(df['ds'] < mid_time) & (df['ds'] > start_time)]
-    df_train = df_train.iloc[::1000, :]
+    df_train = df_train.iloc[::300, :]
     df_test = df[(df['ds'] >= mid_time) & (df['ds'] < end_time)]
-    df_test = df_test.iloc[::1000, :]
+    df_test = df_test.iloc[::300, :]
 
     print(df_train.shape)
     print(df_test.shape)
 
     # param_grid = {
-    #     'n_changepoints': [30],
-    #     'changepoint_range': [0.6],
-    #     'changepoint_prior_scale': [0.5],
-    #     'daily_seasonality': [True],
-    #     'seasonality_mode': ['additive'],
-    #     'seasonality_prior_scale': [1],
-    #     'interval_width': [0.1],
-    #     'uncertainty_samples': [500],
+    #     'changepoint_range': [i / 10 for i in range(3, 10)],
+    #     'seasonality_mode': ['additive', 'multiplicative'],
+    #     'seasonality_prior_scale': [0.05, 0.1, 0.5, 1, 5, 10, 15],
     # }
-
+    #
     # all_params = [dict(zip(param_grid.keys(), v)) for v in itertools.product(*param_grid.values())]
     # rmses = []  # 用于存储各个参数集对应的RMSE误差
     #
@@ -61,14 +56,9 @@ def prophet_model_test(csv_file, value):
     # print(best_params)
 
     best_params = {
-        'n_changepoints': 30,
-        'changepoint_range': 0.6,
-        'changepoint_prior_scale': 0.5,
-        'daily_seasonality': True,
-        'seasonality_mode': 'additive',
-        'seasonality_prior_scale': 1,
-        'interval_width': 0.1,
-        'uncertainty_samples': 500,
+        'changepoint_range': 0.8,
+        'seasonality_mode': 'multiplicative',  # 'multiplicative
+        'seasonality_prior_scale': 10,
     }
 
     # Use the best params to fit the model
