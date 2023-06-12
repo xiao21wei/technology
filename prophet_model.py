@@ -7,29 +7,30 @@ from prophet import Prophet
 
 def prophet_model_test(csv_file, value):
     # Load the data
-    df = pd.read_csv(csv_file, parse_dates=['trendTime'])
+    df = pd.read_csv(csv_file, parse_dates=['time'])
     # Rename the columns
-    df = df.rename(columns={'trendTime': 'ds', value: 'y'})
+    df = df.rename(columns={'time': 'ds', value: 'y'})
     last_data_time = df['ds'].iloc[-1]
 
     start_time = pd.to_datetime(last_data_time) - pd.Timedelta(days=8)
     start_time = start_time.strftime('%Y-%m-%d %H:%M:%S')
+    start_time = '2021-11-02 11:49:38'
     print(start_time)
 
     # last_data_time为%Y-%m-%d %H:%M:%S格式
     mid_time = pd.to_datetime(last_data_time) - pd.Timedelta(days=1)
     mid_time = mid_time.strftime('%Y-%m-%d %H:%M:%S')
+    mid_time = '2021-11-04 04:22:01'
     print(mid_time)
 
     end_time = pd.to_datetime(mid_time) + pd.Timedelta(days=1)
     end_time = end_time.strftime('%Y-%m-%d %H:%M:%S')
+    end_time = '2021-11-04 15:02:32'
     print(end_time)
 
     # 划分训练集和测试集
     df_train = df[(df['ds'] < mid_time) & (df['ds'] > start_time)]
-    df_train = df_train.iloc[::300, :]
     df_test = df[(df['ds'] >= mid_time) & (df['ds'] < end_time)]
-    df_test = df_test.iloc[::300, :]
 
     print(df_train.shape)
     print(df_test.shape)
@@ -55,11 +56,11 @@ def prophet_model_test(csv_file, value):
     # best_params = all_params[rmses.index(min(rmses, key=lambda x: x[1]))]
     # print(best_params)
 
-    best_params = {
-        'changepoint_range': 0.8,
-        'seasonality_mode': 'multiplicative',  # 'multiplicative
-        'seasonality_prior_scale': 10,
-    }
+    # best_params = {
+    #     'changepoint_range': 0.8,
+    #     'seasonality_mode': 'multiplicative',  # 'multiplicative
+    #     'seasonality_prior_scale': 10,
+    # }
 
     # Use the best params to fit the model
     # m = Prophet(**best_params).fit(df_train)
@@ -77,4 +78,4 @@ def prophet_model_test(csv_file, value):
 
 
 if __name__ == '__main__':
-    prophet_model_test('cs4.csv', 'three')
+    prophet_model_test('Ng.csv', 'Ng')

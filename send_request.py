@@ -1,5 +1,7 @@
 import csv
 import json
+
+import pandas as pd
 import yaml
 
 import requests
@@ -67,6 +69,20 @@ def get_real_time():
 
 def get_history(equipmentUuid, pointId, startTime, endTime):
     url = "http://" + IP + ":" + PORT + "/trend/" + equipmentUuid + "/" + pointId + "/" + startTime + "/" + endTime + "/info"
+    print(url)
+
+    print(url)
+    response = requests.get(url)
+    print(response.json())
+    if 'data' in response.json():
+        data_data = response.json()["data"]
+        return data_data
+    else:
+        return None
+
+
+def get_proctrend_history(equipmentUuid, pointId, startTime, endTime):
+    url = "http://" + IP + ":" + PORT + "/proctrend/" + equipmentUuid + "/" + pointId + "/" + startTime + "/" + endTime + "/his"
     response = requests.get(url)
     if 'data' in response.json():
         data_data = response.json()["data"]
@@ -97,11 +113,11 @@ def load_data(start, end):
             f.close()
 
 
-def load_three_data(start, end):
-    data = get_history("b1161555a5cf4cb0f060a7442127b7b6", "cs4", start, end)
+def load_other_data(start, end):
+    data = get_history("d5c48b2bc9c34875bc719c0c6300233a", "燃气发生器转速_Ng", start, end)
     if data is not None and len(data["trendInfo"]) != 0:
         trendInfo = data["trendInfo"]
-        f = open("cs4.csv", "a", encoding="utf-8", newline="")
+        f = open("燃气发生器转速_Ng.csv", "a", encoding="utf-8", newline="")
         csv_writer = csv.writer(f)
         for trend in trendInfo:
             trendTime = trend["trendTime"]
@@ -111,21 +127,56 @@ def load_three_data(start, end):
         f.close()
 
 
+def load_proctrend_data(start, end):
+    data = get_proctrend_history("d5c48b2bc9c34875bc719c0c6300233a", "燃气发生器转速_Ng", start, end)
+    if data is not None and len(data["trendValues"]) != 0:
+        trendValues = data["trendValues"]
+        # "trendValues": {"2021-11-02 11:49:38.653": [12958.29],"2021-11-02 11:49:44.833": [12964.02]}
+        # 将数据写入csv文件，分别为time和Ng
+        f = open("Ng.csv", "a", encoding="utf-8", newline="")
+        csv_writer = csv.writer(f)
+        for trendValue in trendValues:
+            t = trendValue
+            Ng = trendValues[trendValue][0]
+            csv_writer.writerow([t, Ng])
+        f.close()
+
+
+# 将Ng.csv和GenPCal.csv合并，写入Ng_GenPCal.csv文件
+def merge_Ng_and_GenPCal():
+    Ng = pd.read_csv("Ng.csv")
+    GenPCal = pd.read_csv("GenPCal.csv")
+    Ng_GenPCal = pd.merge(Ng, GenPCal, on="time", how="left")
+    Ng_GenPCal.to_csv("Ng_GenPCal.csv", index=False, sep=',')
+
+
 if __name__ == '__main__':
-    # 获取当前时间的UNIX毫秒时间戳和一周前的UNIX毫秒时间戳
-    start = 1681885246000
-    end = 1683184292000
-    left = start
-    right = start + 40 * 60 * 1000
-    left = str(left)
-    right = str(right)
-    f = open("cs4.csv", "a", encoding="utf-8", newline="")
-    csv_writer = csv.writer(f)
-    csv_writer.writerow(["trendTime", "three"])
-    f.close()
-    while int(left) < end:
-        left = int(right)
-        right = left + 40 * 60 * 1000
-        left = str(left)
-        right = str(right)
-        load_three_data(left, right)
+    # 开始时间为2021-11-02 10:09:37.727
+    # 结束时间为八天后
+    # start = 1635824977727
+    # # 2021-11-04 15:02:32.460
+    # end = 1636047752460
+    # left = start
+    # right = start + 5 * 60 * 1000
+    # print(left, right)
+    # f = open("Ng.csv", "a", encoding="utf-8", newline="")
+    # csv_writer = csv.writer(f)
+    # csv_writer.writerow(["time", "Ng"])
+    # f.close()
+    # while left < end:
+    #     load_proctrend_data(str(left), str(right))
+    #     left = right
+    #     right = right + 5 * 60 * 1000
+    #     if right > end:
+    #         right = end
+    # # 输出Ng.csv文件的行数
+    # f = open("Ng.csv", "r", encoding="utf-8")
+    # reader = csv.reader(f)
+    # print(len(list(reader)))
+    # f.close()
+
+    # data = get_proctrend_history("d5c48b2bc9c34875bc719c0c6300233a", "发电功率GenPCal", str(left), str(right))
+    # # 输出data["trendValues"]的长度
+    # print(len(data["trendValues"]))
+
+    merge_Ng_and_GenPCal()
