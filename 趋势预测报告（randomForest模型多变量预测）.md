@@ -166,9 +166,7 @@ param_grid = {
 
 
 
-
-
-
+接下来，我们对所有的参数组合进行一次遍历：
 
 ```
 param_grid = {
@@ -180,17 +178,19 @@ param_grid = {
 }
 ```
 
-
+此时输出的最优参数组合为：
 
 ```
 {'n_estimators': 100, 'max_depth': 4, 'min_samples_split': 3, 'min_samples_leaf': 1, 'max_features': 'log2'}
 ```
 
+结果如下：
+
 ![image-20230607232725349](趋势预测报告（randomForest模型多变量预测）.assets/image-20230607232725349.png)
 
+接下来，我们逐步缩小待优化参数的取值范围，来尝试获取到更加准确的参数组合。
 
-
-
+待优化参数：
 
 ```
 param_grid = {
@@ -202,15 +202,19 @@ param_grid = {
     }
 ```
 
+运行结果：
+
 ![image-20230609173531774](趋势预测报告（randomForest模型多变量预测）.assets/image-20230609173531774.png)
 
 ![image-20230609173951664](趋势预测报告（randomForest模型多变量预测）.assets/image-20230609173951664.png)
+
+当前最优参数：
 
 ```
 {'n_estimators': 140}
 ```
 
-
+待优化参数：
 
 ```
 param_grid = {
@@ -222,14 +226,110 @@ param_grid = {
     }
 ```
 
+运行结果：
+
 ![image-20230609174154379](趋势预测报告（randomForest模型多变量预测）.assets/image-20230609174154379.png)
 
 ![image-20230609174209019](趋势预测报告（randomForest模型多变量预测）.assets/image-20230609174209019.png)
+
+当前最优参数：
 
 ```
 {'n_estimators': 139}
 ```
 
-![image-20230609174526136](趋势预测报告（randomForest模型多变量预测）.assets/image-20230609174526136.png)
+待优化参数：
 
-![image-20230609174539132](趋势预测报告（randomForest模型多变量预测）.assets/image-20230609174539132.png)
+```
+param_grid = {
+        'n_estimators': [139],
+        'max_depth': [3, 4, 5, 6, 7],
+        # 'min_samples_split': [2, 3, 4, 5, 6],
+        # 'min_samples_leaf': [1, 2, 3, 4, 5],
+        # 'max_features': ['sqrt', 'log2']
+    }
+```
+
+运行结果：
+
+![image-20230630145659139](趋势预测报告（randomForest模型多变量预测）.assets/image-20230630145659139.png)
+
+![image-20230630145758680](趋势预测报告（randomForest模型多变量预测）.assets/image-20230630145758680.png)
+
+当前最优参数：
+
+```
+{'n_estimators': 139, 'max_depth': 4}
+```
+
+待优化参数：
+
+```
+param_grid = {
+        'n_estimators': [139],  # 决策树的个数,从100到300，步长为10
+        'max_depth': [4],
+        'min_samples_split': [2, 3, 4, 5, 6],
+        # 'min_samples_leaf': [1, 2, 3, 4, 5],
+        # 'max_features': ['sqrt', 'log2']
+    }
+```
+
+运行结果：
+
+![image-20230630151613365](趋势预测报告（randomForest模型多变量预测）.assets/image-20230630151613365.png)
+
+![image-20230630151625717](趋势预测报告（randomForest模型多变量预测）.assets/image-20230630151625717.png)
+
+当前最优参数：
+
+```
+{'n_estimators': 139, 'max_depth': 4, 'min_samples_split': 5}
+```
+
+待优化参数：
+
+```
+param_grid = {
+        'n_estimators': [139],
+        'max_depth': [4],
+        'min_samples_split': [5],
+        'min_samples_leaf': [1, 2, 3, 4, 5],
+        # 'max_features': ['sqrt', 'log2']
+    }
+```
+
+运行结果：
+
+![image-20230630152105203](趋势预测报告（randomForest模型多变量预测）.assets/image-20230630152105203.png)
+
+![image-20230630152121460](趋势预测报告（randomForest模型多变量预测）.assets/image-20230630152121460.png)
+
+当前最优参数：
+
+```
+{'n_estimators': 139, 'max_depth': 4, 'min_samples_split': 5, 'min_samples_leaf': 3}
+```
+
+待优化参数：
+
+```
+param_grid = {
+        'n_estimators': [139],
+        'max_depth': [4],
+        'min_samples_split': [5],
+        'min_samples_leaf': [3],
+        'max_features': ['sqrt', 'log2']
+    }
+```
+
+运行结果：
+
+![image-20230630152502723](趋势预测报告（randomForest模型多变量预测）.assets/image-20230630152502723.png)
+
+当前最优参数：
+
+```
+{'n_estimators': 139, 'max_depth': 4, 'min_samples_split': 5, 'min_samples_leaf': 3, 'max_features': 'sqrt'}
+```
+
+我们可以发现，通过遍历所有的参数组合获取到的结果，和我们逐步优化参数获取到的结果是有一定差距的。这种结果说明我们考虑的这几个参数是存在一定的关联的，后续进行的参数调整会受到其他参数的影响。逐步调参只能得到一个相对较好的模型，想要得到更好的模型则需要尝试使用网格调参等方式，遍历可能的参数组合。不过，这种方式是非常耗费时间的，同时，我们最后得到的模型也可能并不能在性能上有巨大的提升，目前正在考虑使用其他可能有较好预测结果的模型。

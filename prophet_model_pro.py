@@ -5,6 +5,9 @@ import pandas as pd
 from matplotlib import pyplot as plt
 from prophet import Prophet
 
+from sklearn.model_selection import GridSearchCV
+from sklearn.metrics import make_scorer, mean_squared_error
+
 
 def prophet_model_pro_test():
     df = pd.read_csv('Ng_GenPCal.csv', parse_dates=['time'])
@@ -17,40 +20,41 @@ def prophet_model_pro_test():
     print(df_for_training.shape)
     print(df_for_testing.shape)
 
-    # param_grid = {
-    #     'n_changepoints': [11],
-    #     'changepoint_range': [0.3],
-    #     'seasonality_mode': ['additive'],
-    #     'seasonality_prior_scale': [0.05],
-    #     'interval_width': [0.8, 0.85, 0.9, 0.95]
-    # }
-    #
-    # all_params = [dict(zip(param_grid.keys(), v)) for v in itertools.product(*param_grid.values())]
-    # rmses = []  # 用于存储各个参数集对应的RMSE误差
-    #
-    # # Use cross validation to evaluate all parameters
-    # for params in all_params:
-    #     m = Prophet(**params).add_regressor('Ng')  # Fit model with given params
-    #     m.fit(df_for_training)  # Fit model with given params
-    #     df_cv = m.predict(df_for_testing)  # Make predictions
-    #     df_p = df_cv[['ds', 'yhat']].join(df_for_testing[['ds', 'y']].set_index('ds'), on='ds')  # Predictions and test data
-    #     df_p.dropna(inplace=True)
-    #     rmses.append((params, (df_p['y'] - df_p['yhat']).apply(lambda x: x ** 2).mean() ** 0.5))
-    #
-    # # Find the best parameters
-    # best_params = all_params[rmses.index(min(rmses, key=lambda x: x[1]))]
-    # print(best_params)
-
-    param = {
-        'n_changepoints': 11,
-        'changepoint_range': 0.3,
-        'seasonality_mode': 'additive',
-        'seasonality_prior_scale': 0.05,
-        'interval_width': 0.8
+    param_grid = {
+        'n_changepoints': [i for i in range(10, 30)],
+        'changepoint_range': [i / 10 for i in range(3, 10)],
+        'seasonality_mode': ['additive', 'multiplicative'],
+        'seasonality_prior_scale': [0.05, 0.1, 0.5, 1, 5, 10, 15],
+        'interval_width': [0.8, 0.85, 0.9, 0.95]
     }
 
+    all_params = [dict(zip(param_grid.keys(), v)) for v in itertools.product(*param_grid.values())]
+    rmses = []  # 用于存储各个参数集对应的RMSE误差
+
+    # Use cross validation to evaluate all parameters
+    for params in all_params:
+        m = Prophet(**params).add_regressor('Ng')  # Fit model with given params
+        m.fit(df_for_training)  # Fit model with given params
+        df_cv = m.predict(df_for_testing)  # Make predictions
+        df_p = df_cv[['ds', 'yhat']].join(df_for_testing[['ds', 'y']].set_index('ds'), on='ds')  # Predictions and test data
+        df_p.dropna(inplace=True)
+        rmses.append((params, (df_p['y'] - df_p['yhat']).apply(lambda x: x ** 2).mean() ** 0.5))
+        print(params, (df_p['y'] - df_p['yhat']).apply(lambda x: x ** 2).mean() ** 0.5)
+
+    # Find the best parameters
+    best_params = all_params[rmses.index(min(rmses, key=lambda x: x[1]))]
+    print(best_params)
+
+    # param = {
+    #     'n_changepoints': 11,
+    #     'changepoint_range': 0.3,
+    #     'seasonality_mode': 'additive',
+    #     'seasonality_prior_scale': 0.05,
+    #     'interval_width': 0.8
+    # }
+
     # 构建模型
-    model = Prophet(**param)
+    model = Prophet(**best_params)
     model.add_regressor('Ng')
     model.fit(df_for_training)
 

@@ -33,11 +33,11 @@ def randomForest_model_pro_test():
 
     # 构建模型，并进行调参
     param_grid = {
-        'n_estimators': [139],  # 决策树的个数,从100到300，步长为10
-        'max_depth': [3, 4, 5, 6, 7],
-        # 'min_samples_split': [2, 3, 4, 5, 6],
-        # 'min_samples_leaf': [1, 2, 3, 4, 5],
-        # 'max_features': ['sqrt', 'log2']
+        'n_estimators': [139],
+        'max_depth': [4],
+        'min_samples_split': [5],
+        'min_samples_leaf': [3],
+        'max_features': ['sqrt', 'log2']
     }
 
     all_params = [dict(zip(param_grid.keys(), v)) for v in itertools.product(*param_grid.values())]
@@ -52,10 +52,10 @@ def randomForest_model_pro_test():
         print(params, rmse)
         rmses.append(rmse)
 
-    # 画出rmse的变化曲线，横坐标为参数中的n_estimators，纵坐标为rmse
-    plt.figure(figsize=(20, 10))
-    plt.plot([i['max_depth'] for i in all_params], rmses)
-    plt.show()
+    # # 画出rmse的变化曲线，横坐标为参数中的n_estimators，纵坐标为rmse
+    # plt.figure(figsize=(20, 10))
+    # plt.plot([i['min_samples_leaf'] for i in all_params], rmses)
+    # plt.show()
 
     # 找出最优参数
     best_params = all_params[np.argmin(rmses)]
