@@ -17,7 +17,7 @@ os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
 import keras.backend as k
 
 
-def positive_mse(y_true, y_pred):
+def positive_mse(y_true, y_pred):  # 定义损失函数，使得预测值为正，即不考虑负值，只考虑预测值大于0的情况，这样可以提高预测的准确性
     return k.mean(k.square(k.maximum(y_pred, 0) - k.maximum(y_true, 0)), axis=-1)
 
 
@@ -26,6 +26,11 @@ def lstm_model_pro_test():
     print(df.shape)
 
     # df = df.iloc[::100, :]
+
+    # 处理缺失值
+    df = df.dropna()
+    # 调整数据集索引
+    df = df.sort_index()
 
     test_split = round(len(df) * 0.20)
     df_for_training = df[:-test_split]
@@ -49,15 +54,39 @@ def lstm_model_pro_test():
     print("testX Shape-- ", testX.shape)
     print("testY Shape-- ", testY.shape)
 
+    # 遍历trainX,trainY,testX,testY,输出其中的负值
+    for i in range(len(trainX)):
+        for j in range(len(trainX[i])):
+            if trainX[i][j][0] < 0:
+                print("trainX[", i, "][", j, "][0]=", trainX[i][j][0])
+            if trainX[i][j][1] < 0:
+                print("trainX[", i, "][", j, "][1]=", trainX[i][j][1])
+        if trainY[i] < 0:
+            print("trainY[", i, "]=", trainY[i])
+
+    for i in range(len(testX)):
+        for j in range(len(testX[i])):
+            if testX[i][j][0] < 0:
+                print("testX[", i, "][", j, "][0]=", testX[i][j][0])
+            if testX[i][j][1] < 0:
+                print("testX[", i, "][", j, "][1]=", testX[i][j][1])
+        if testY[i] < 0:
+            print("testY[", i, "]=", testY[i])
+
     # grid_model = KerasRegressor(build_fn=build_model, verbose=1, validation_data=(testX, testY))
     #
     # parameters = {
-    #     'batch_size': [32, 64, 128, 256],
-    #     'epochs': [30, 40, 50],
+    #     'batch_size': [128],
+    #     'epochs': [40, 50],
     #     'optimizer': ['SGD']
     # }
     #
-    # grid_search = GridSearchCV(estimator=grid_model, param_grid=parameters, cv=2)
+    # grid_search = GridSearchCV(
+    #     estimator=grid_model,
+    #     param_grid=parameters,
+    #     cv=5,
+    #     scoring='neg_mean_squared_error',
+    #     verbose=1)
     # grid_search = grid_search.fit(trainX, trainY)
     #
     # # 输出最优的参数组合
@@ -73,10 +102,10 @@ def lstm_model_pro_test():
     my_model = build_model(parameters['optimizer'])
     # 设置模型的batch_size和epochs
     my_model.fit(trainX, trainY, batch_size=parameters['batch_size'], epochs=parameters['epochs'])
-    #
-    # my_model.save('my_model.h5')
-    #
-    # model = load_model('my_model.h5')
+
+    my_model.save('my_model.h5')
+
+    my_model = load_model('my_model.h5')
 
     prediction = my_model.predict(testX)
     # prediction1 = my_model.predict(trainX)
@@ -128,11 +157,10 @@ def build_model(optimizer):  # 构建模型，optimizer为优化器
     grid_model.add(LSTM(50, return_sequences=True, input_shape=(50, 2)))
     grid_model.add(LSTM(50))  # return_sequences默认为False
     grid_model.add(Dropout(0.2))  # 防止过拟合
-    # grid_model.add(Dense(1, activation='relu'))  # 全连接层
-    grid_model.add(Dense(1))  # 全连接层
+    grid_model.add(Dense(1, activation='relu'))  # 全连接层
 
     grid_model.compile(loss='mse', optimizer=optimizer)  # 编译模型
-    # grid_model.compile(loss=positive_mse, optimizer=optimizer)  # 编译模型
+    # grid_model.compile(loss=positive_mse, optimizer=optimizer)  # 编译模型，使用自定义的损失函数
     return grid_model
 
 
